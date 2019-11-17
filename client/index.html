@@ -44,8 +44,8 @@
     }
 
     .square {
-      height: 500px;
-      width: 500px;
+      height: 400px;
+      width: 400px;
       background-color: #555;
     }
 
@@ -59,7 +59,7 @@
       color: #ffffff;
       font-family: Arial;
       font-size: 17px;
-      padding: 12px 20px;
+      padding: 10px 12px;
       text-decoration: none;
       text-shadow: 0px 1px 0px #2f6627;
     }
@@ -76,11 +76,13 @@
 </head>
 
 <body>
-  <h1 style="font-size: 30px;font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;color: whitesmoke;"> myChess</h1>
+  <h1 style="font-size: 30px;font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;color: whitesmoke;">
+    myChess</h1>
   <div class="square">
     <tr>
       <td>
         <div id="myBoard" style="width: 520px"></div>
+        <button class='myButtons' id="goBack"><<</button>
       </td>
       <td>
         <label>Status:</label>
@@ -105,11 +107,11 @@
   <button class='myButtons' id="clearButton">Clear Board</button>
   <button class='myButtons' id="startPos">Starting position</button>
   <button class='myButtons' id="Puzzle">Start random puzzle</button>
+  
 
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="node_modules/@chrisoakman/chessboardjs/dist/chessboard-1.0.0.min.js"></script>
   <script src="./chess.js"></script>
-  <script type="application/json" src="fenpos.json"></script>
 
   <script>
     var board = null
@@ -257,10 +259,10 @@
       }
       const kingsPos = game.getKings()
       $status.html(status)
-      $pos.html(`Kings pos: white=${game.getSquare(kingsPos.w)} black=${game.getSquare(kingsPos.b)}`)
+      $pos.html(`white=${game.getSquare(kingsPos.w)} black=${game.getSquare(kingsPos.b)}`)
       $fen.html(game.fen())
       $pgn.html(game.pgn())
-
+      var history = game.history()
     }
 
     function onMoveEnd() {
@@ -306,6 +308,12 @@
       removeAllHighlights()
       loadPuzzle()
       $(window).resize(board.resize)
+    })
+    $('#goBack').on('click', function () {
+      //if(!history.length()===0)
+        removeAllHighlights()
+        game.undo()
+        board.position(game.fen())
     })
     updateStatus()
 
