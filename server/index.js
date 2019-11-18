@@ -6,6 +6,7 @@ const fs = require('fs')
 const Chess = require('./node_modules/chess.js').Chess;
 const chess= new Chess()
 const client = __dirname + "/../client/"
+const stockfish = require('./node_modules/.bin/stockfish')
 
 //set up routes
 router.get('/', function (req, res) {
@@ -26,7 +27,7 @@ fs.readFile("m8n3.txt", function (err, buf) {
     z += puzzle[i] + "\n";
     Fen = z.split('\n');
   }
-  for (i in Fen){
+  for (var i = 0; i< Fen.length;i++){
     if(!chess.load(Fen[i])){
       console.log('out: ',Fen[i])
       Fen.splice(i,1);

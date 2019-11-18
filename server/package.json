@@ -9,6 +9,7 @@
   "author": "Fíla",
   "license": "UNLICENSED",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "stockfish": "^10.0.2"
   }
 }

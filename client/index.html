@@ -275,11 +275,12 @@
     function loadPuzzle() {
       var randomPuzzle = puzzle.posfen[(Math.floor(Math.random() * puzzle.posfen.length))]
       //uz neni potreba, ale pro jistotu
+      //i pres zkontrolovani v serverove casti vyhazuje chyby, proc?
       if (game.load(randomPuzzle)) {
         board.position(randomPuzzle)
       } else {
         console.log('invalid position number:', randomPuzzle)
-        window.setTimeout(loadPuzzle(), 100)
+        window.setTimeout(loadPuzzle(), 1000)
       }
     }
     var config = {
