@@ -274,6 +274,7 @@
     }
     function loadPuzzle() {
       var randomPuzzle = puzzle.posfen[(Math.floor(Math.random() * puzzle.posfen.length))]
+      //uz neni potreba, ale pro jistotu
       if (game.load(randomPuzzle)) {
         board.position(randomPuzzle)
       } else {
