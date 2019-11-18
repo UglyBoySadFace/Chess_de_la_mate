@@ -6,7 +6,7 @@ const fs = require('fs')
 const Chess = require('./node_modules/chess.js').Chess;
 const chess= new Chess()
 const client = __dirname + "/../client/"
-const stockfish = require('./node_modules/.bin/stockfish')
+const stockfish = require('stockfish')
 
 //set up routes
 router.get('/', function (req, res) {

@@ -9,6 +9,7 @@
   "author": "Fíla",
   "license": "UNLICENSED",
   "dependencies": {
+    "chess.js": "^0.10.2",
     "express": "^4.17.1",
     "stockfish": "^10.0.2"
   }
