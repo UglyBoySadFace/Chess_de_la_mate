@@ -82,11 +82,10 @@
     <tr>
       <td>
         <div id="myBoard" style="width: 520px"></div>
-        <button class='myButtons' id="goBack"><<</button>
-      </td>
-      <td>
-        <label>Status:</label>
-        <div id="status">White to move</div>
+        <button class='myButtons' id="goBack">
+          <<</button> </td> <td>
+            <label>Status:</label>
+            <div id="status">White to move</div>
       </td>
       <td>
         <label>FEN:</label>
@@ -107,7 +106,7 @@
   <button class='myButtons' id="clearButton">Clear Board</button>
   <button class='myButtons' id="startPos">Starting position</button>
   <button class='myButtons' id="Puzzle">Start random puzzle</button>
-  
+
 
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="node_modules/@chrisoakman/chessboardjs/dist/chessboard-1.0.0.min.js"></script>
@@ -127,6 +126,9 @@
     var $pgn = $('#pgn')
     var puzzle
     var game = new Chess()
+    var puzzleInProgress = false;
+    var number;
+    var counter = 0;
 
     $.getJSON("fenpos.json", function (json) {
       puzzle = json
@@ -184,6 +186,18 @@
       })
       //illegal move
       if (move === null) return 'snapback'
+
+      if (!(number == null)) {
+
+        if (puzzleInProgress) {
+          console.log(puzzle.solutions[number][counter].toString().substring(0, 2), puzzle.solutions[number][counter].toString().substring(2, 4));
+          if (!(source == puzzle.solutions[number][counter].toString().substring(0, 2)) && !(target == puzzle.solutions[number][counter].toString().substring(2, 4))) {
+            game.undo()
+          } else if ((source == puzzle.solutions[number][counter].toString().substring(0, 2)) && (target == puzzle.solutions[number][counter].toString().substring(2, 4))) {
+            counter++;
+          }
+        }
+      }
       if (game.turn() == 'b') {
         removeHighlights('check')
         removeHighlights('white')
@@ -235,6 +249,11 @@
       // checkmate?
       if (game.in_checkmate()) {
         status = 'Game over, ' + moveColor + ' is in checkmate.'
+        if (moveColor === 'Black') {
+          $board.find('.square-' + game.getSquare(kingsPos.b)).addClass('highlight-check')
+        } else {
+          $board.find('.square-' + game.getSquare(kingsPos.w)).addClass('highlight-check')
+        }
       }
 
       // draw?
@@ -273,15 +292,18 @@
       board.position(game.fen())
     }
     function loadPuzzle() {
-      var randomPuzzle = puzzle.posfen[(Math.floor(Math.random() * puzzle.posfen.length))]
+      number = (Math.floor(Math.random() * puzzle.posfen.length));
+      var randomPuzzle = puzzle.posfen[number];
+      counter = 0;
+      puzzleInProgress = true;
       //uz neni potreba, ale pro jistotu
-      //i pres zkontrolovani v serverove casti vyhazuje chyby, proc?
       if (game.load(randomPuzzle)) {
         board.position(randomPuzzle)
       } else {
         console.log('invalid position number:', randomPuzzle)
         window.setTimeout(loadPuzzle(), 1000)
       }
+      updateStatus();
     }
     var config = {
       draggable: true,
@@ -313,9 +335,9 @@
     })
     $('#goBack').on('click', function () {
       //if(!history.length()===0)
-        removeAllHighlights()
-        game.undo()
-        board.position(game.fen())
+      removeAllHighlights()
+      game.undo()
+      board.position(game.fen())
     })
     updateStatus()
 
