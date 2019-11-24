@@ -191,10 +191,15 @@
 
         if (puzzleInProgress) {
           console.log(puzzle.solutions[number][counter].toString().substring(0, 2), puzzle.solutions[number][counter].toString().substring(2, 4));
-          if (!(source == puzzle.solutions[number][counter].toString().substring(0, 2)) && !(target == puzzle.solutions[number][counter].toString().substring(2, 4))) {
+          if (!(source == puzzle.solutions[number][counter].toString().substring(0, 2)) || (!(target == puzzle.solutions[number][counter].toString().substring(2, 4)))){
+            console.log('move no good')
             game.undo()
-          } else if ((source == puzzle.solutions[number][counter].toString().substring(0, 2)) && (target == puzzle.solutions[number][counter].toString().substring(2, 4))) {
-            counter++;
+          }else{
+            counter ++;
+          }
+          if(counter%2==1){
+            game.move(puzzle.solutions[number][counter], {sloppy : true})
+            counter ++;
           }
         }
       }
@@ -240,7 +245,6 @@
 
     function updateStatus() {
       var status = ''
-
       var moveColor = 'White'
       if (game.turn() === 'b') {
         moveColor = 'Black'
@@ -248,6 +252,7 @@
 
       // checkmate?
       if (game.in_checkmate()) {
+        const kingsPos = game.getKings()
         status = 'Game over, ' + moveColor + ' is in checkmate.'
         if (moveColor === 'Black') {
           $board.find('.square-' + game.getSquare(kingsPos.b)).addClass('highlight-check')
@@ -324,6 +329,7 @@
       game.clear()
     })
     $('#startPos').on('click', function () {
+      puzzleInProgress = false
       removeAllHighlights()
       game.reset()
       board.start()
