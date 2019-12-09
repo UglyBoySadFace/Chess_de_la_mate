@@ -9,8 +9,14 @@
   "author": "Fíla",
   "license": "UNLICENSED",
   "dependencies": {
+    "body-parser": "^1.19.0",
     "chess.js": "^0.10.2",
+    "cors": "^2.8.5",
+    "errorhandler": "^1.5.1",
     "express": "^4.17.1",
+    "express-session": "^1.17.0",
+    "mongoose": "^5.7.12",
+    "passport": "^0.4.0",
     "stockfish": "^10.0.2"
   }
 }

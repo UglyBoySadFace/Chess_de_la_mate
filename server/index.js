@@ -3,14 +3,17 @@ const app = express();
 const path = require('path');
 const router = express.Router();
 const fs = require('fs')
-const Chess = require('./node_modules/chess.js').Chess;
+const Chess = require('./node_modules/chess.js/chess').Chess;
 const chess = new Chess();
 const client = __dirname + "/../client/";
 var stockfish = require('./node_modules/stockfish/src/stockfish');
+const bodyParser = require('body-parser');
+const session = require('express-session');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const errorHandler = require('errorhandler');
 var engine = stockfish();
 var bestmove;
-var game_end = false;
-
 
 //set up routes
 router.get('/', function (req, res) {
@@ -60,7 +63,7 @@ fs.readFile("m8n3.txt", function (err, buf) {
       check_forBestMove(chess.fen());
     } else {
       prettyJson = { 'posfen': z, 'solutions': solutions }
-      let data = JSON.stringify(prettyJson);
+      let data = JSON.stringify(prettyJson, null, 1);
       fs.writeFileSync('../client/fenpos.json', data);
       console.log(solutions.toString());
     }
