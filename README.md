@@ -3,9 +3,9 @@
  1)download and install:https://nodejs.org/en/ <br>
  2)make a directory and copy server and client there <br>
  3)follow to the server_path in cmd <br>
- 4)run with command <br>
+ 4)run <br>
  <code>   
- node index.js  
+ npm start  
  </code>
  <br>
  used libraries are..jquery,chessjs,chessboard  
