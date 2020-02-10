@@ -7,13 +7,8 @@ const Chess = require('./node_modules/chess.js/chess').Chess;
 const chess = new Chess();
 const client = __dirname + "/../client/";
 var stockfish = require('./node_modules/stockfish/src/stockfish');
-const bodyParser = require('body-parser');
-const session = require('express-session');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const errorHandler = require('errorhandler');
 var engine = stockfish();
-var bestmove;
+
 
 //set up routes
 router.get('/', function (req, res) {
@@ -22,6 +17,7 @@ router.get('/', function (req, res) {
 app.use('/', router);
 app.use(express.static(client));
 app.listen(process.env.port || 3000);
+
 
 //vytvori fenpos.json s moznymi pozicemi, ktere jsou validni
 //mozna jde jednoduseji ?
@@ -43,12 +39,13 @@ fs.readFile("m8n3.txt", function (err, buf) {
     }
   }
 
+
+  var bestmove;
   var solutions = [];
   var bestMovesOfGame = [];
   var counter = 1;
   var curmoves = 1;
   getBestMovesOfGame(0);
-
 
   function getBestMovesOfGame(index) {
     if (index != z.length) {
@@ -69,7 +66,7 @@ fs.readFile("m8n3.txt", function (err, buf) {
     }
   }
   function moveAndCollect() {
-    if (!(chess.move(bestmove, { sloppy: true }) == null) && (curmoves < 6)) {
+    if (!(chess.move(bestmove, { sloppy: true }) == null)) {
       console.log('move number:' + curmoves + ' has been made ==>' + bestmove);
       bestMovesOfGame.push(bestmove);
       curmoves += 1;
@@ -109,8 +106,16 @@ fs.readFile("m8n3.txt", function (err, buf) {
             bestmove = (match[1]);
             console.log('this is the best move: ' + bestmove);
           if (!chess.in_checkmate()) {
+            if (curmoves===6){
+              bestMovesOfGame =[];
+              z.pop(counter);
+              counter ++;
+              getBestMovesOfGame(counter);
+
+            }else {
             moveAndCollect();
             check_forBestMove(chess.fen());
+            }
           } else {
             console.log('END OF THE GAME');
             getBestMovesOfGame(counter);
@@ -118,10 +123,8 @@ fs.readFile("m8n3.txt", function (err, buf) {
           }
         }
       }
-    };
+    }
   }
 
-}
-);
-
 console.log('Running at Port 3000');
+});
