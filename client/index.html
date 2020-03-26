@@ -92,11 +92,13 @@
   <div class="square">
     <tr>
       <td>
-        <div id="myBoard" style="width: 520px"></div>
+        <div id="myBoard" style="width: 750px"></div>
         <button class='myButtons' id="goBack">
-          GO back </button> </td> <td>
-            <label>Status:</label>
-            <div id="status">White to move</div>
+          GO back </button>
+      </td>
+      <td>
+        <label>Status:</label>
+        <div id="status">White to move</div>
       </td>
       <td>
         <label>FEN:</label>
@@ -118,11 +120,13 @@
       </td>
     </tr>
   </div>
-  <button class='myButtons' id=" clearButton">Clear Board</button>
+  <div>
+  <button class='myButtons' id="clearButton">Clear Board</button>
   <button class='myButtons' id="startPos">Starting position</button>
   <button class='myButtons' id="Puzzle">Start random puzzle</button>
   <button class='myButtons' id="Hint">Hint</button>
-
+  <button class='myButtons' id="APIBlunder">API</button>
+</div>
 
 
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -165,7 +169,7 @@
         background = blackSquareGrey
       }
       $square.css('background', background)
-    } 
+    }
     function removeHighlights(color) {
       $board.find('.' + squareClass)
         .removeClass('highlight-' + color)
@@ -175,7 +179,7 @@
         .removeClass('highlight-check')
         .removeClass('highlight-black')
         .removeClass('highlight-white')
-        .removeClass('highlite-hint')
+        .removeClass('highlight-hint')
     }
 
     function onDragStart(source, piece, position, orientation) {
@@ -205,6 +209,7 @@
       //illegal move
       if (move === null) return 'snapback'
 
+
       if (!(number == null)) {
 
         if (puzzleInProgress) {
@@ -225,9 +230,20 @@
             okay.style["mix-blend-mode"] = "multiply";
             counter++;
           }
-          if (counter % 2 == 1) {
+          if (counter % 2 == 1 && counter < 5) {
             removeHighlights("hint")
             game.move(puzzle.solutions[number][counter], { sloppy: true })
+            if (game.turn() == 'b') {
+              removeHighlights('check')
+              removeHighlights('white')
+              $board.find('.square-' + puzzle.solutions[number][counter].toString().substring(0, 2)).addClass('highlight-white')
+              $board.find('.square-' + puzzle.solutions[number][counter].toString().substring(2, 4)).addClass('highlight-white')
+            } else {
+              removeHighlights('check')
+              removeHighlights('black')
+              $board.find('.square-' + puzzle.solutions[number][counter].toString().substring(0, 2)).addClass('highlight-black')
+              $board.find('.square-' + puzzle.solutions[number][counter].toString().substring(2, 4)).addClass('highlight-black')
+            }
             counter++;
           }
         }
@@ -328,10 +344,8 @@
       board.position(game.fen())
     }
     function loadPuzzle() {
+      console.log(puzzle.posfen.length, puzzle.solutions.length)
       number = (Math.floor(Math.random() * puzzle.posfen.length));
-      while(puzzle.solutions[number].length==0){
-        number = (Math.floor(Math.random() * puzzle.posfen.length));
-      }
       var randomPuzzle = puzzle.posfen[number];
       counter = 0;
       puzzleInProgress = true;
@@ -355,8 +369,25 @@
       onMouseoutSquare: onMouseoutSquare,
       onMouseoverSquare: onMouseoverSquare
     }
-    board = Chessboard('myBoard', config)
+    board = Chessboard('myBoard', config);
 
+
+    $('#APIBlunder').on('click', function () {
+      console.log('l')
+      $.ajax({
+        url: 'https://chessblunders.org/api/mobile/api/blunders/get',
+        crossDomain: true,
+        data: {
+          token: 'oe21sdaiopj3irfs'
+        },
+        onSuccess: function (result) {
+          console.log('ajax works!')
+        },
+        onFail: function (result) {
+          console.log('ajax doesnt works!')
+        }
+      });
+    })
     $('#clearButton').on('click', function () {
       removeAllHighlights()
       board.clear()
@@ -369,9 +400,9 @@
       board.start()
     })
     $('#Puzzle').on('click', function () {
+      console.log("fine")
       removeAllHighlights()
       loadPuzzle()
-      $(window).resize(board.resize)
     })
     $('#goBack').on('click', function () {
       if (!puzzleInProgress) {
@@ -384,7 +415,7 @@
       if (puzzleInProgress) {
         $board.find('.square-' + puzzle.solutions[number][counter].toString().substring(0, 2)).addClass('highlight-hint')
         $board.find('.square-' + puzzle.solutions[number][counter].toString().substring(2, 4)).addClass('highlight-hint')
-        
+
       }
       updateStatus()
     }

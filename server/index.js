@@ -8,15 +8,43 @@ const chess = new Chess();
 const client = __dirname + "/../client/";
 var stockfish = require('./node_modules/stockfish/src/stockfish');
 var engine = stockfish();
+var sync = require('sync');
+
 
 
 //set up routes
 router.get('/', function (req, res) {
   res.sendFile(path.join(client + '/index.html'));
 });
+
+
+app.post('/', function(req,res){
+
+})
 app.use('/', router);
 app.use(express.static(client));
-app.listen(process.env.port || 3000);
+app.use(function(req, res, next) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
+});
+
+if (app.get('env') === 'development') {
+  app.use(function(err, req, res, next) {
+      res.render('error', {
+          message: err.message,
+          error: err
+      });
+  });
+}
+
+app.use(function(err, req, res, next) {
+  res.render('error', {
+      message: err.message,
+      error: {}
+  });
+});
+app.listen(process.env.port || 8000);
 
 
 //vytvori fenpos.json s moznymi pozicemi, ktere jsou validni
@@ -24,31 +52,30 @@ app.listen(process.env.port || 3000);
 //pri pridani jine database je treba toto upravit
 fs.readFile("m8n3.txt", function (err, buf) {
   var puzzle = buf.toString().split(/\r?\n/);
-  var z = '';
+  var arrayOfPositions = '';
   var Fen;
   // i = starting line, i = i + k{spaces between lines}
   for (var i = 9; i < puzzle.length; i = i + 5) {
-    z += puzzle[i] + "\n";
-    Fen = z.split('\n');
+    arrayOfPositions += puzzle[i] + "\n";
+    Fen = arrayOfPositions.split('\n');
   }
-  delete z;
-  z = [];
+  delete arrayOfPositions;
+  arrayOfPositions = [];
   for (i = 0; i < Fen.length; i++) {
     if (chess.load(Fen[i])) {
-      z.push(Fen[i])
+      arrayOfPositions.push(Fen[i])
     }
   }
-
-
   var bestmove;
   var solutions = [];
   var bestMovesOfGame = [];
-  var counter = 1;
+  var counter = 0;
   var curmoves = 1;
+  var positionsbefore=arrayOfPositions.length
   getBestMovesOfGame(0);
 
   function getBestMovesOfGame(index) {
-    if (index != z.length) {
+    if (index != arrayOfPositions.length) {
       if (curmoves == 6) {
         solutions.push(bestMovesOfGame);
       }
@@ -56,13 +83,14 @@ fs.readFile("m8n3.txt", function (err, buf) {
       curmoves = 1;
       send('ucinewgame');
       console.log('game number:' + index);
-      chess.load(z[index]);
+      chess.load(arrayOfPositions[index]);
       check_forBestMove(chess.fen());
     } else {
-      prettyJson = { 'posfen': z, 'solutions': solutions }
+      solutions.push(bestMovesOfGame);
+      prettyJson = { 'posfen': arrayOfPositions, 'solutions': solutions }
       let data = JSON.stringify(prettyJson, null, 1);
       fs.writeFileSync('../client/fenpos.json', data);
-      console.log(solutions.toString());
+      console.log("Checksum",positionsbefore, arrayOfPositions.length, solutions.length);
     }
   }
   function moveAndCollect() {
@@ -72,13 +100,20 @@ fs.readFile("m8n3.txt", function (err, buf) {
       curmoves += 1;
     } else {
       console.error('INVALID MOVE OR NOT M8IN3; SHUTTING DOWN')
-      process.exit;
+      process.exit(2);
     }
   }
 
   function send(str) {
     console.log("Sending: " + str)
     engine.postMessage(str);
+  }
+  function getRidOf() {
+    bestMovesOfGame = [];
+    arrayOfPositions.splice(counter, 1);
+    counter++;
+    getBestMovesOfGame(counter);
+
   }
 
   function check_forBestMove(position_of_puzzle) {
@@ -93,38 +128,35 @@ fs.readFile("m8n3.txt", function (err, buf) {
         console.log(line);
         return;
       }
-     
-        if (line === "uciok") {
-          send("position fen " + position_of_puzzle);
-          console.log(chess.ascii());
-          //for mate in 5 we will need to search somewhere betweeen 10-11 plies
-          send('go depth 11');
-        }
-        if (line.indexOf("bestmove") > -1) {
-          match = line.match(/bestmove\s+(\S+)/);
-          if (match) {
-            bestmove = (match[1]);
-            console.log('this is the best move: ' + bestmove);
-          if (!chess.in_checkmate()) {
-            if (curmoves===6){
-              bestMovesOfGame =[];
-              z.pop(counter);
-              counter ++;
-              getBestMovesOfGame(counter);
 
-            }else {
-            moveAndCollect();
-            check_forBestMove(chess.fen());
+      if (line === "uciok") {
+        send("position fen " + position_of_puzzle);
+        console.log(chess.ascii());
+        //for mate in 5 we will need to search somewhere betweeen 10-11 plies
+        send('go depth 11');
+      }
+      if (line.indexOf("bestmove") > -1) {
+        match = line.match(/bestmove\s+(\S+)/);
+        if (match) {
+          bestmove = (match[1]);
+          console.log('this is the best move: ' + bestmove);
+          if (!chess.in_checkmate()) {
+            if (curmoves === 6) {
+              getRidOf();
+              positionsbefore--;
+            } else {
+              moveAndCollect();
+              check_forBestMove(chess.fen());
             }
           } else {
             console.log('END OF THE GAME');
-            getBestMovesOfGame(counter);
             counter++;
+            getBestMovesOfGame(counter);
           }
         }
       }
     }
   }
 
-console.log('Running at Port 3000');
+  console.log('Running at Port 3000');
 });
