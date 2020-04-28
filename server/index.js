@@ -48,7 +48,6 @@ app.listen(process.env.port || 8000);
 
 
 //vytvori fenpos.json s moznymi pozicemi, ktere jsou validni
-//mozna jde jednoduseji ?
 //pri pridani jine database je treba toto upravit
 fs.readFile("m8n3.txt", function (err, buf) {
   var puzzle = buf.toString().split(/\r?\n/);
@@ -57,8 +56,8 @@ fs.readFile("m8n3.txt", function (err, buf) {
   // i = starting line, i = i + k{spaces between lines}
   for (var i = 9; i < puzzle.length; i = i + 5) {
     arrayOfPositions += puzzle[i] + "\n";
-    Fen = arrayOfPositions.split('\n');
   }
+  Fen = arrayOfPositions.split('\n');
   delete arrayOfPositions;
   arrayOfPositions = [];
   for (i = 0; i < Fen.length; i++) {
